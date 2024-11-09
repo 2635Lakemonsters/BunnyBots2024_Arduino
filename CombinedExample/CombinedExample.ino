@@ -1,16 +1,13 @@
 #include <Wire.h>
-
 #include <Adafruit_TCS34725.h>
-
 #include <Adafruit_NeoPixel.h>
 
-// define constants
-#define TCAADDR 0x70
-#define LEFTSENSOR 2
-#define RIGHTSENSOR 3
-#define LED_PIN    13
-#define LED_COUNT  55
-#define LED_PIN2    8
+#define TCAADDR       0x70
+#define LEFTSENSOR    2
+#define RIGHTSENSOR   3
+#define STRIP_PIN     13
+#define LED_COUNT     55
+#define RED_RIGHT_PIN 8
 
 
 struct Color_Type {
@@ -21,22 +18,27 @@ struct Color_Type {
   static constexpr type default_type = NONE;
 };
 
+// The threshold for the ratio between red and blue that signifies whether a red balloon or blue balloon are seen
 const float redTolerance = 1.80;
 const float blueTolerance = 0.9;
 
+// This value is used to tell which sensor is currently being measured
 bool rightSensor = false;
+
+// The LED ranges that define the separate parts of the LED strip
 int leftSideLEDs[2] = {0,19};
 int middleLEDs[2] = {20,34};
 int rightSideLEDs[2] = {35,54};
 
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+// Strip Setup Constants
+Adafruit_NeoPixel strip(LED_COUNT, STRIP_PIN, NEO_GRB + NEO_KHZ800);
+const uint32_t magenta = strip.Color(255, 0, 255); 
+const uint32_t green = strip.Color(0, 255, 0);
+const uint32_t red = strip.Color(255, 0, 0);
+const uint32_t blue = strip.Color(0, 0, 255);
+const uint32_t no_colour = strip.Color(0, 0, 0);
 
-uint32_t magenta = strip.Color(255, 0, 255); //RGB
-uint32_t green = strip.Color(0, 255, 0);
-uint32_t red = strip.Color(255, 0, 0);
-uint32_t blue = strip.Color(0, 0, 255);
-uint32_t no_colour = strip.Color(0, 0, 0);
-
+// Color sensor variables
 uint16_t r;
 uint16_t g;
 uint16_t b;
@@ -67,7 +69,7 @@ int checkColor(uint32_t, uint32_t, uint32_t);
 Adafruit_TCS34725 lightSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X);
 void setup() {
   // put your setup code here, to run once:
-  pinMode(LED_PIN2, OUTPUT);
+  pinMode(RED_RIGHT_PIN, OUTPUT);
 
   
   strip.begin();
@@ -121,7 +123,7 @@ void setSideColors(){
   if (checkColor(r,g,b) == Color_Type::RED && rightSensor == true){
     Serial.println("RED");
     setColors(RIGHT, red);
-    digitalWrite(LED_PIN2, HIGH);
+    digitalWrite(RED_RIGHT_PIN, HIGH);
   }
 
   if (checkColor(r,g,b) == Color_Type::BLUE && rightSensor == false){
@@ -132,7 +134,7 @@ void setSideColors(){
   if (checkColor(r,g,b) == Color_Type::BLUE && rightSensor == true){
     Serial.println("BLUE");
     setColors(RIGHT, blue);
-    digitalWrite(LED_PIN2, LOW);
+    digitalWrite(RED_RIGHT_PIN, LOW);
   }
 
   if (checkColor(r,g,b) == Color_Type::NONE && rightSensor == false){
@@ -144,7 +146,7 @@ void setSideColors(){
   if (checkColor(r,g,b) == Color_Type::NONE && rightSensor == true){
     Serial.println("NONE");
     setColors(RIGHT, green);
-    digitalWrite(LED_PIN2, LOW);
+    digitalWrite(RED_RIGHT_PIN, LOW);
   }
 }
 int checkColor(uint32_t red, uint32_t green, uint32_t blue){
