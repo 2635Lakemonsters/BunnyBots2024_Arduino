@@ -10,6 +10,8 @@
 #define RIGHTSENSOR 3
 #define LED_PIN    13
 #define LED_COUNT  55
+#define LED_PIN2    8
+
 
 struct Color_Type {
   enum type { RED, BLUE, NONE };
@@ -19,10 +21,10 @@ struct Color_Type {
   static constexpr type default_type = NONE;
 };
 
-
 const float redTolerance = 1.80;
-const float blueTolerance = 0.7;
+const float blueTolerance = 0.9;
 
+bool rightSensor = false;
 int leftSideLEDs[2] = {0,19};
 int middleLEDs[2] = {20,34};
 int rightSideLEDs[2] = {35,54};
@@ -65,6 +67,8 @@ int checkColor(uint32_t, uint32_t, uint32_t);
 Adafruit_TCS34725 lightSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X);
 void setup() {
   // put your setup code here, to run once:
+  pinMode(LED_PIN2, OUTPUT);
+
   
   strip.begin();
   strip.setBrightness(20);
@@ -79,19 +83,21 @@ void setup() {
 }
 
   void loop(){
-  // tcaSelect(LEFTSENSOR);
-  // lightSensor.getRawData(&r,  &g,  &b,  &c);
-  // Serial.println("LEFT SENSOR");
-  // Serial.print("RED: ");
-  // Serial.println(r, DEC);
-  // Serial.print("GREEN: ");
-  // Serial.println(g, DEC);
-  // Serial.print("BLUE: ");
-  // Serial.println(b, DEC);
-  // Serial.println();
-  // delay(100);
-
+  tcaSelect(LEFTSENSOR);
+  rightSensor = false;
+  lightSensor.getRawData(&r,  &g,  &b,  &c);
+  Serial.println("LEFT SENSOR");
+  Serial.print("RED: ");
+  Serial.println(r, DEC);
+  Serial.print("GREEN: ");
+  Serial.println(g, DEC);
+  Serial.print("BLUE: ");
+  Serial.println(b, DEC);
+  Serial.println();
+  delay(100);
+  setSideColors();
   tcaSelect(RIGHTSENSOR);
+  rightSensor = true;
   lightSensor.getRawData(&r,  &g,  &b,  &c);
   Serial.println("RIGHT SENSOR");
   Serial.print("RED: ");
@@ -101,24 +107,46 @@ void setup() {
   Serial.print("BLUE: ");
   Serial.println(b, DEC);
   Serial.println();
-  
-  if (checkColor(r,g,b) == Color_Type::RED){
-    Serial.println("RED");
-    setColors(LEFT, red);
-    setColors(RIGHT, red);
-  }
-  if (checkColor(r,g,b) == Color_Type::BLUE){
-    Serial.println("BLUE");
-    setColors(LEFT, blue);
-    setColors(RIGHT, blue);
-  }
-  if (checkColor(r,g,b) == Color_Type::NONE){
-    Serial.println("NONE");
-    setColors(NONE, green);
-  }
+  setSideColors();
+
 
 }
 
+void setSideColors(){
+  if (checkColor(r,g,b) == Color_Type::RED && rightSensor == false){
+    Serial.println("RED");
+    setColors(LEFT, red);
+  }
+
+  if (checkColor(r,g,b) == Color_Type::RED && rightSensor == true){
+    Serial.println("RED");
+    setColors(RIGHT, red);
+    digitalWrite(LED_PIN2, HIGH);
+  }
+
+  if (checkColor(r,g,b) == Color_Type::BLUE && rightSensor == false){
+    Serial.println("BLUE");
+    setColors(LEFT, blue);
+  }
+
+  if (checkColor(r,g,b) == Color_Type::BLUE && rightSensor == true){
+    Serial.println("BLUE");
+    setColors(RIGHT, blue);
+    digitalWrite(LED_PIN2, LOW);
+  }
+
+  if (checkColor(r,g,b) == Color_Type::NONE && rightSensor == false){
+    Serial.println("NONE");
+    setColors(LEFT, green);
+    
+  }
+
+  if (checkColor(r,g,b) == Color_Type::NONE && rightSensor == true){
+    Serial.println("NONE");
+    setColors(RIGHT, green);
+    digitalWrite(LED_PIN2, LOW);
+  }
+}
 int checkColor(uint32_t red, uint32_t green, uint32_t blue){
   double tempblue = (double) blue;
   double tempred = (double) red;
@@ -127,7 +155,6 @@ int checkColor(uint32_t red, uint32_t green, uint32_t blue){
   Serial.println(tempred / tempblue);
   if (tempred / tempblue > redTolerance)
   {
-    
     return Color_Type::RED;
   }
   else if (tempblue/ tempred > blueTolerance) 
