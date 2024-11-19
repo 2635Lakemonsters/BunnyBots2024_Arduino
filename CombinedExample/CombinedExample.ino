@@ -11,6 +11,8 @@
 #define BLUE_RIGHT_PIN 9
 #define RED_LEFT_PIN 10
 #define BLUE_LEFT_PIN 11
+#define RIGHT_ENABLE_PIN 2
+#define LEFT_ENABLE_PIN 3
 
 
 struct Color_Type {
@@ -22,15 +24,15 @@ struct Color_Type {
 };
 
 // The threshold for the ratio between red and blue that signifies whether a red balloon or blue balloon are seen
-const float midThresh = 2;
-const float midThreshWidth = 1.3;
+const float midThresh = 1.3;
+const float midThreshWidth = 0.95;
 // This value is used to tell which sensor is currently being measured
 bool rightSensor = false;
 
 // The LED ranges that define the separate parts of the LED strip
-int leftSideLEDs[2] = {0,1}; // {0,19}
-int middleLEDs[2] = {2,3};// {20,34}
-int rightSideLEDs[2] = {4,5};// {35,54}
+int leftSideLEDs[2] = {0,19}; // {0,19}
+int middleLEDs[2] = {20,34};// {20,34}
+int rightSideLEDs[2] = {35,54};// {35,54}
 
 // Strip Setup Constants
 Adafruit_NeoPixel strip(LED_COUNT, STRIP_PIN, NEO_GRB + NEO_KHZ800);
@@ -73,6 +75,11 @@ Adafruit_TCS34725 lightSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS
 void setup() {
   //Initializing data pins
   pinMode(RED_RIGHT_PIN, OUTPUT);
+  pinMode(RED_LEFT_PIN, OUTPUT);
+  pinMode(BLUE_RIGHT_PIN, OUTPUT);
+  pinMode(BLUE_LEFT_PIN, OUTPUT);
+  pinMode(RIGHT_ENABLE_PIN, INPUT_PULLUP);
+  pinMode(LEFT_ENABLE_PIN, INPUT_PULLUP);
 
   // Starting everything up (comms and sensors)
   Serial.begin(115200);
@@ -85,10 +92,10 @@ void setup() {
 }
 
 void loop(){
-  //tcaSelect(LEFTSENSOR);
-  //rightSensor = false;
-  //lightSensor.getRawData(&r,  &g,  &b,  &c);
-  //Serial.println("LEFT SENSOR");
+  tcaSelect(LEFTSENSOR);
+  rightSensor = false;
+  lightSensor.getRawData(&r,  &g,  &b,  &c);
+  Serial.println("LEFT SENSOR");
   // Serial.print("RED: ");
   // Serial.println(r, DEC);
   // Serial.print("GREEN: ");
@@ -96,8 +103,11 @@ void loop(){
   // Serial.print("BLUE: ");
   // Serial.println(b, DEC);
   // Serial.println();
-  //delay(100);
-  //setSideColors();
+  delay(100);
+  setSideColors();
+
+
+
   tcaSelect(RIGHTSENSOR);
   rightSensor = true;
   lightSensor.getRawData(&r,  &g,  &b,  &c);
@@ -116,42 +126,45 @@ void loop(){
 void setSideColors(){
   int color = checkColor(r,g,b);
 
-
-  
-
-
   if (color == Color_Type::RED && rightSensor == false){
     // Serial.println("RED");
     setColors(LEFT, red);
+    digitalWrite(RED_LEFT_PIN, HIGH);
+    digitalWrite(BLUE_LEFT_PIN, LOW);
   }
-
-  if (color == Color_Type::RED && rightSensor == true){
+  else if (color == Color_Type::RED && rightSensor == true){
     // Serial.println("RED");
     setColors(RIGHT, red);
     digitalWrite(RED_RIGHT_PIN, HIGH);
+    digitalWrite(BLUE_RIGHT_PIN, LOW);
   }
 
   if (color == Color_Type::BLUE && rightSensor == false){
     // Serial.println("BLUE");
     setColors(LEFT, blue);
+    digitalWrite(BLUE_LEFT_PIN, HIGH);
+    digitalWrite(RED_LEFT_PIN, LOW);
   }
-
   if (color == Color_Type::BLUE && rightSensor == true){
     // Serial.println("BLUE");
     setColors(RIGHT, blue);
     digitalWrite(RED_RIGHT_PIN, LOW);
+    digitalWrite(BLUE_RIGHT_PIN, HIGH);
   }
 
   if (color == Color_Type::NONE && rightSensor == false){
     // Serial.println("NONE");
     setColors(LEFT, green);
-    
+    digitalWrite(BLUE_LEFT_PIN, LOW);
+    digitalWrite(RED_LEFT_PIN, LOW);
   }
 
   if (color == Color_Type::NONE && rightSensor == true){
     // Serial.println("NONE");
     setColors(RIGHT, green);
     digitalWrite(RED_RIGHT_PIN, LOW);
+    digitalWrite(BLUE_RIGHT_PIN, LOW);
+   
   }
 }
 
@@ -163,12 +176,17 @@ int checkColor(uint32_t red, uint32_t green, uint32_t blue){
   // Serial.println(tempblue);
   Serial.print("Ratio:");
   Serial.println(ratio);
-
-  if (ratio > midThresh + midThreshWidth) {
-    return Color_Type::RED;
-  } else if (ratio <  midThresh - midThreshWidth) {
-    return Color_Type::BLUE;
-  } else {
+  if ((rightSensor == true &&  digitalRead(RIGHT_ENABLE_PIN) == HIGH) || (rightSensor == false &&  digitalRead(LEFT_ENABLE_PIN) == HIGH)) 
+  {
+    if (ratio > midThresh + midThreshWidth) {
+      return Color_Type::RED;
+    } else if (ratio <  midThresh - midThreshWidth) {
+      return Color_Type::BLUE;
+    } else {
+      return Color_Type::NONE;
+    }
+  }
+  else{
     return Color_Type::NONE;
   }
 }
