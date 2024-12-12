@@ -3,9 +3,9 @@
 #include <Adafruit_NeoPixel.h>
 
 #define TCAADDR       0x70
-#define LEFTSENSOR    2
-#define RIGHTSENSOR   3
-#define STRIP_PIN     4
+#define LEFTSENSOR    6
+#define RIGHTSENSOR   7
+#define STRIP_PIN     5
 #define LED_COUNT     55
 #define RED_RIGHT_PIN 8
 #define BLUE_RIGHT_PIN 9
@@ -28,11 +28,12 @@ const float midThresh = 1.3;
 const float midThreshWidth = 0.95;
 // This value is used to tell which sensor is currently being measured
 bool rightSensor = false;
+const int delayTime = 200;
 
 // The LED ranges that define the separate parts of the LED strip
-int leftSideLEDs[2] = {0,19}; // {0,19}
-int middleLEDs[2] = {20,34};// {20,34}
-int rightSideLEDs[2] = {35,54};// {35,54}
+int leftSideLEDs[2] = {0,3}; // {0,19}
+int middleLEDs[2] = {4,7};// {20,34}
+int rightSideLEDs[2] = {8,11};// {35,54}
 
 // Strip Setup Constants
 Adafruit_NeoPixel strip(LED_COUNT, STRIP_PIN, NEO_GRB + NEO_KHZ800);
@@ -84,7 +85,7 @@ void setup() {
   // Starting everything up (comms and sensors)
   Serial.begin(115200);
   strip.begin();
-  strip.setBrightness(20);
+  strip.setBrightness(10);
   strip.show();
   lightSensor.begin();
   tcaSelect(LEFTSENSOR);
@@ -103,7 +104,7 @@ void loop(){
   // Serial.print("BLUE: ");
   // Serial.println(b, DEC);
   // Serial.println();
-  delay(100);
+  delay(delayTime);
   setSideColors();
 
 
@@ -119,7 +120,7 @@ void loop(){
   // Serial.print("BLUE: ");
   // Serial.println(b, DEC);
   // Serial.println();
-  delay(100);
+  delay(delayTime);
   setSideColors();
 }
 

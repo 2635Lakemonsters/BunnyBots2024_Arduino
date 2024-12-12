@@ -1,11 +1,11 @@
 #include <Adafruit_NeoPixel.h>
 
-#define LED_PIN    13
-#define LED_COUNT  55
+#define LED_PIN    5
+#define LED_COUNT  35
 
-int leftSideLEDs[2] = {0,19};
-int middleLEDs[2] = {20,34};
-int rightSideLEDs[2] = {35,54};
+int leftSideLEDs[2] = {0,4};
+int middleLEDs[2] = {5,9};
+int rightSideLEDs[2] = {10,14};
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -28,7 +28,7 @@ void setup() {
   // put your setup code here, to run once:
   
   strip.begin();
-  strip.setBrightness(20);
+  strip.setBrightness(5);
   //strip.setPixelColor(5, 50, 50, 255); // (pixel index, red, green, blue)
   strip.show();
   
@@ -43,21 +43,27 @@ void setup() {
     // having green on all side represetns having the correct color ob ballons grabbed
     
 
-    setColors(LEFT, blue);
-    setColors(MIDDLE, green);
-    setColors(RIGHT, red);
-    delay(500);
-
-    setColors(NONE, no_colour);
-    delay(500);
-
     setColors(LEFT, green);
     setColors(MIDDLE, green);
     setColors(RIGHT, green);
     delay(500);
 
+    setColors(NONE, no_colour);
+    
+    delay(500);
+
+    setColors(LEFT, red);
+    setColors(MIDDLE, red);
+    setColors(RIGHT, red);
+    delay(500);
+
     setColors(LEFT, magenta);
     setColors(MIDDLE, magenta);
+    setColors(RIGHT, magenta);
+    delay(500);
+
+    setColors(LEFT, blue);
+    setColors(MIDDLE, blue);
     setColors(RIGHT, blue);
     delay(500);
   }
@@ -85,6 +91,7 @@ void setColors(Sides side, uint32_t color){
     default: 
       start = 0;
       end = LED_COUNT-1;
+      //strip.setPixelColor(0, blue);
       break;
 
   }
