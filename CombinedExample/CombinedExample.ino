@@ -91,7 +91,7 @@ void setup() {
   Serial.begin(115200);
 
   strip_left.begin();
-  strip_left.setBrightness(10);
+  strip_left.setBrightness(50);
   strip_left.show();
 
   tcaSelect(LEFTSENSOR);
@@ -99,12 +99,22 @@ void setup() {
   delay(delayTime);
   
   strip_right.begin();
-  strip_right.setBrightness(10);
+  strip_right.setBrightness(50);
   strip_right.show();
 
   tcaSelect(RIGHTSENSOR);
   sensor_right.begin();
-  delay(delayTime);
+
+  // Initialization animation
+  for (int i = 0; i < LED_COUNT; i++) {
+    strip_left.setPixelColor(i, green);
+    strip_right.setPixelColor(i, green);
+    strip_left.show();
+    strip_right.show();
+    delay(50);
+  }
+
+  delay(250);
 }
 
 void loop(){
@@ -196,7 +206,7 @@ int checkColor(uint32_t red, uint32_t green, uint32_t blue){
   Serial.print("Ratio:");
   Serial.println(ratio);
 
-  if ((rightSensor == true && digitalRead(RIGHT_ENABLE_PIN) == HIGH) || (rightSensor == false && digitalRead(LEFT_ENABLE_PIN) == HIGH)) {
+  if ((rightSensor == true /*&& digitalRead(RIGHT_ENABLE_PIN) == HIGH*/) || (rightSensor == false /*&& digitalRead(LEFT_ENABLE_PIN) == HIGH*/)) {
     if (ratio > midThresh + midThreshWidth) {
       return Color_Type::RED;
     } else if (ratio <  midThresh - midThreshWidth) {
